@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ロット計算ツール | 柊 FX</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .container { max-width: 460px; margin: 0 auto; }
+
+    /* ヘッダー */
+    header { text-align: center; padding: 28px 0 20px; }
+    header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.02em; }
+    header p { font-size: 13px; color: #6b7280; margin-top: 6px; line-height: 1.5; }
+
+    /* カード */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 18px;
+    }
+
+    /* フィールド */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 7px;
+    }
+
+    input[type="number"], select {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 9px;
+      font-size: 15px;
+      color: #1a1a2e;
+      background: #fff;
+      -webkit-appearance: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: #4361ee;
+    }
+
+    .hint {
+      font-size: 11.5px;
+      color: #9ca3af;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    /* 通貨トグル */
+    .toggle-row { display: flex; gap: 8px; }
+    .toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #9ca3af;
+      background: #fff;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .toggle-btn.active {
+      border-color: #4361ee;
+      color: #4361ee;
+      background: #eef1fd;
+    }
+
+    /* 計算ボタン */
+    .btn-calc {
+      width: 100%;
+      padding: 15px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: opacity 0.15s;
+      margin-bottom: 14px;
+    }
+    .btn-calc:active { opacity: 0.8; }
+
+    /* 結果 */
+    .result-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      display: none;
+    }
+    .result-card.show { display: block; }
+
+    .result-main {
+      text-align: center;
+      padding: 14px 0 18px;
+      border-bottom: 1px solid #f3f4f6;
+      margin-bottom: 18px;
+    }
+    .result-main-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .result-lot-value {
+      font-size: 48px;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.1;
+      margin-top: 8px;
+    }
+    .result-lot-unit {
+      font-size: 18px;
+      color: #6b7280;
+      font-weight: 500;
+      margin-left: 3px;
+    }
+
+    .result-rows { display: flex; flex-direction: column; gap: 12px; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; }
+    .result-row-label { font-size: 13px; color: #6b7280; }
+    .result-row-value { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+
+    /* 警告 */
+    .alert {
+      border-radius: 9px;
+      padding: 11px 13px;
+      font-size: 12px;
+      line-height: 1.6;
+      margin-top: 14px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-warn { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+    .alert-danger { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+
+    /* レートステータス */
+    .rate-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .rate-status {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .rate-status.loading { color: #9ca3af; }
+    .rate-status.success { color: #059669; }
+    .rate-status.error   { color: #dc2626; }
+    .btn-refresh {
+      font-size: 11px;
+      color: #4361ee;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+    .btn-refresh:hover { background: #eef1fd; }
+    .btn-refresh:disabled { color: #9ca3af; cursor: default; }
+
+    /* フッター */
+    .disclaimer {
+      font-size: 11px;
+      color: #b0b7c3;
+      text-align: center;
+      line-height: 1.7;
+      padding: 0 4px 8px;
+    }
+    footer { text-align: center; padding: 8px 0 28px; }
+    footer a { font-size: 12px; color: #b0b7c3; text-decoration: none; }
+    footer a:hover { color: #6b7280; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>ロット計算ツール</h1>
+    <p>リスク管理の第一歩を、数字で確認する</p>
+  </header>
+
+  <!-- 口座設定 -->
+  <div class="card">
+    <div class="card-title">口座設定</div>
+
+    <div class="field">
+      <label>口座通貨</label>
+      <div class="toggle-row">
+        <div class="toggle-btn active" id="btn-usd" onclick="setCurrency('USD')">USD（ドル）</div>
+        <div class="toggle-btn" id="btn-jpy" onclick="setCurrency('JPY')">JPY（円）</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>口座残高</label>
+      <input type="number" id="balance" placeholder="例: 500" min="0" step="any">
+      <div class="hint" id="balance-hint">USD で入力してください</div>
+    </div>
+
+    <div class="field">
+      <label>リスク許容率（%）</label>
+      <input type="number" id="risk-pct" value="2" min="0.1" max="100" step="0.1">
+      <div class="hint">口座残高の何%まで損失を許容するか　推奨: 1〜2%</div>
+    </div>
+  </div>
+
+  <!-- トレード設定 -->
+  <div class="card">
+    <div class="rate-status-row">
+      <div class="card-title" style="margin-bottom:0;">トレード設定</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="rate-status loading" id="rate-status">レート取得中...</span>
+        <button class="btn-refresh" id="btn-refresh" onclick="fetchRates()" disabled>更新</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>通貨ペア</label>
+      <select id="pair" onchange="onPairChange()">
+        <option value="USDJPY">USD/JPY（ドル円）</option>
+        <option value="EURUSD">EUR/USD（ユーロドル）</option>
+        <option value="XAUUSD">XAU/USD（ゴールド）</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label id="rate-label">現在のレート（USD/JPY）</label>
+      <input type="number" id="rate" value="149.00" min="0" step="any">
+      <div class="hint" id="rate-hint">日次レートを自動取得します。手動で変更することもできます</div>
+    </div>
+
+    <!-- JPY口座 × 非USDJPYペアの場合のみ表示 -->
+    <div class="field" id="usdjpy-rate-field" style="display:none;">
+      <label>ドル円レート（JPY換算用）</label>
+      <input type="number" id="usdjpy-rate" value="149.00" min="0" step="any">
+      <div class="hint">JPYへの換算に使用します</div>
+    </div>
+
+    <div class="field">
+      <label>損切り幅（pips）</label>
+      <input type="number" id="sl-pips" placeholder="例: 20" min="1" step="any">
+      <div class="hint" id="pips-hint">USD/JPY の場合、1 pip = 0.01円の値動き（例: 150.00 → 150.01）</div>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="calculate()">計算する</button>
+
+  <!-- 結果 -->
+  <div class="result-card" id="result-card">
+    <div class="card-title">計算結果</div>
+
+    <div class="result-main">
+      <div class="result-main-label">推奨ロット数</div>
+      <div class="result-lot-value" id="result-lot">
+        —<span class="result-lot-unit">lot</span>
+      </div>
+    </div>
+
+    <div class="result-rows">
+      <div class="result-row">
+        <span class="result-row-label">リスク許容額</span>
+        <span class="result-row-value" id="result-risk-amount">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-row-label">損切り時の損失（概算）</span>
+        <span class="result-row-value" id="result-loss">—</span>
+      </div>
+      <div class="result-row">
+        <span class="result-row-label">1pipsあたりの損益</span>
+        <span class="result-row-value" id="result-pip-value">—</span>
+      </div>
+    </div>
+
+    <div class="alert alert-warn" id="alert-low">
+      ⚠️ 最小ロット（0.01）を下回っています。リスク許容率を上げるか、損切り幅を小さくしてください。
+    </div>
+    <div class="alert alert-danger" id="alert-high">
+      ⚠️ リスクが高めです。1トレードのリスクは口座残高の2%以内が一般的な目安です。
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    ※ 本ツールは参考値の提供を目的としており、投資の推奨ではありません。<br>
+    実際の取引は自己責任で行ってください。
+  </div>
+
+  <footer>
+    <a href="https://twitter.com/hiiragi_ai_fx" target="_blank">@hiiragi_ai_fx</a>
+  </footer>
+
+</div>
+
+<script>
+  let accountCurrency = 'USD';
+  let fetchedRates = null; // { USDJPY, EURUSD, XAUUSD, date }
+
+  const FALLBACK_RATES = { USDJPY: 149.00, EURUSD: 1.08, XAUUSD: 2900.00 };
+  const RATE_LABELS    = { USDJPY: '現在のレート（USD/JPY）', EURUSD: '現在のレート（EUR/USD）', XAUUSD: '現在のレート（XAU/USD）' };
+  const PIPS_HINTS     = {
+    USDJPY: 'USD/JPY の場合、1 pip = 0.01円の値動き（例: 150.00 → 150.01）',
+    EURUSD: 'EUR/USD の場合、1 pip = 0.0001の値動き（例: 1.0800 → 1.0801）',
+    XAUUSD: 'XAU/USD の場合、1 pip = $0.01の値動き（例: 2900.00 → 2900.01）'
+  };
+
+  // --- レート自動取得 ---
+  async function fetchRates() {
+    setRateStatus('loading', 'レート取得中...');
+    document.getElementById('btn-refresh').disabled = true;
+
+    const URLS = [
+      'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
+      'https://latest.currency-api.pages.dev/v1/currencies/usd.json'
+    ];
+
+    let data = null;
+    for (const url of URLS) {
+      try {
+        const res = await fetch(url, { cache: 'no-cache' });
+        if (res.ok) { data = await res.json(); break; }
+      } catch (_) { /* 次のURLへ */ }
+    }
+
+    if (data && data.usd) {
+      const jpy  = data.usd.jpy;
+      const eur  = data.usd.eur;
+      const xau  = data.usd.xau;
+
+      if (jpy && eur && xau) {
+        fetchedRates = {
+          USDJPY: Math.round(jpy * 100) / 100,
+          EURUSD: Math.round((1 / eur) * 10000) / 10000,
+          XAUUSD: Math.round(1 / xau),
+          date:   data.date || '最新'
+        };
+        applyFetchedRates();
+        setRateStatus('success', `${fetchedRates.date} 時点のレート（日次更新）`);
+        document.getElementById('rate-hint').textContent =
+          '自動取得済み。手動で変更することもできます';
+      } else {
+        onFetchError();
+      }
+    } else {
+      onFetchError();
+    }
+
+    document.getElementById('btn-refresh').disabled = false;
+  }
+
+  function onFetchError() {
+    fetchedRates = null;
+    setRateStatus('error', 'レート取得失敗（デフォルト値を使用）');
+    document.getElementById('rate-hint').textContent =
+      'デフォルト値を使用しています。手動で変更してください';
+  }
+
+  function setRateStatus(type, text) {
+    const el = document.getElementById('rate-status');
+    el.className = 'rate-status ' + type;
+    el.textContent = text;
+  }
+
+  function applyFetchedRates() {
+    if (!fetchedRates) return;
+    const pair = document.getElementById('pair').value;
+    document.getElementById('rate').value = fetchedRates[pair];
+    // JPY口座用のドル円レートも更新
+    document.getElementById('usdjpy-rate').value = fetchedRates.USDJPY;
+  }
+
+  // --- UI操作 ---
+  function setCurrency(c) {
+    accountCurrency = c;
+    document.getElementById('btn-usd').classList.toggle('active', c === 'USD');
+    document.getElementById('btn-jpy').classList.toggle('active', c === 'JPY');
+    document.getElementById('balance-hint').textContent =
+      c === 'USD' ? 'USD で入力してください' : '円（JPY）で入力してください';
+    updateExtraRateField();
+    resetResult();
+  }
+
+  function onPairChange() {
+    const pair = document.getElementById('pair').value;
+    const rates = fetchedRates || FALLBACK_RATES;
+    document.getElementById('rate').value = rates[pair];
+    document.getElementById('rate-label').textContent = RATE_LABELS[pair];
+    document.getElementById('pips-hint').textContent  = PIPS_HINTS[pair];
+    updateExtraRateField();
+    resetResult();
+  }
+
+  function updateExtraRateField() {
+    const pair = document.getElementById('pair').value;
+    const show = (accountCurrency === 'JPY' && pair !== 'USDJPY');
+    document.getElementById('usdjpy-rate-field').style.display = show ? 'block' : 'none';
+  }
+
+  function resetResult() {
+    document.getElementById('result-card').classList.remove('show');
+  }
+
+  // --- 計算 ---
+  function getPipValueUSD(pair, tradingRate) {
+    switch (pair) {
+      case 'USDJPY': return 1000 / tradingRate;
+      case 'EURUSD': return 10;
+      case 'XAUUSD': return 1;
+      default:       return 10;
+    }
+  }
+
+  function fmt(amount, currency) {
+    if (currency === 'USD') {
+      return '$' + amount.toLocaleString('ja-JP', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return '¥' + Math.round(amount).toLocaleString('ja-JP');
+  }
+
+  function calculate() {
+    const balance = parseFloat(document.getElementById('balance').value);
+    const riskPct = parseFloat(document.getElementById('risk-pct').value);
+    const pair    = document.getElementById('pair').value;
+    const rate    = parseFloat(document.getElementById('rate').value);
+    const slPips  = parseFloat(document.getElementById('sl-pips').value);
+
+    const usdjpyRate = (accountCurrency === 'JPY' && pair !== 'USDJPY')
+      ? parseFloat(document.getElementById('usdjpy-rate').value)
+      : (pair === 'USDJPY' ? rate : (fetchedRates ? fetchedRates.USDJPY : FALLBACK_RATES.USDJPY));
+
+    if (isNaN(balance) || isNaN(riskPct) || isNaN(rate) || isNaN(slPips) || balance <= 0 || slPips <= 0) {
+      alert('すべての項目を正しく入力してください');
+      return;
+    }
+
+    const balanceUSD      = accountCurrency === 'JPY' ? balance / usdjpyRate : balance;
+    const riskUSD         = balanceUSD * (riskPct / 100);
+    const pipValUSD       = getPipValueUSD(pair, rate);
+    const lot             = Math.floor((riskUSD / (slPips * pipValUSD)) * 100) / 100;
+    const actualLossUSD   = lot * slPips * pipValUSD;
+    const pipValPerLotUSD = lot * pipValUSD;
+
+    document.getElementById('result-lot').innerHTML =
+      lot.toFixed(2) + '<span class="result-lot-unit">lot</span>';
+
+    if (accountCurrency === 'USD') {
+      document.getElementById('result-risk-amount').textContent = fmt(riskUSD, 'USD');
+      document.getElementById('result-loss').textContent        = fmt(actualLossUSD, 'USD');
+      document.getElementById('result-pip-value').textContent   = fmt(pipValPerLotUSD, 'USD') + '/pip';
+    } else {
+      document.getElementById('result-risk-amount').textContent = fmt(riskUSD * usdjpyRate, 'JPY');
+      document.getElementById('result-loss').textContent        = fmt(actualLossUSD * usdjpyRate, 'JPY');
+      document.getElementById('result-pip-value').textContent   = fmt(pipValPerLotUSD * usdjpyRate, 'JPY') + '/pip';
+    }
+
+    document.getElementById('alert-low').classList.toggle('show', lot < 0.01);
+    document.getElementById('alert-high').classList.toggle('show', riskPct > 5);
+
+    const rc = document.getElementById('result-card');
+    rc.classList.add('show');
+    rc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // --- 初期化 ---
+  document.addEventListener('DOMContentLoaded', fetchRates);
+</script>
+</body>
+</html>
