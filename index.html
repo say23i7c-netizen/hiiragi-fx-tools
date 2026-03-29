@@ -4,6 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ロット計算ツール | 柊 FX</title>
+
+  <!-- OGP -->
+  <meta property="og:title" content="ロット計算ツール | 柊 FX">
+  <meta property="og:description" content="口座残高・リスク許容率・損切り幅からロット数を自動計算。元メガバンク為替ディーラーが作ったFXリスク管理ツール。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://say23i7c-netizen.github.io/hiiragi-fx-tools/">
+  <meta property="og:image" content="https://say23i7c-netizen.github.io/hiiragi-fx-tools/ogp.png">
+  <meta property="og:site_name" content="柊 FX Tools">
+  <meta property="og:locale" content="ja_JP">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@hiiragi_ai_fx">
+  <meta name="twitter:title" content="ロット計算ツール | 柊 FX">
+  <meta name="twitter:description" content="口座残高・リスク許容率・損切り幅からロット数を自動計算。元メガバンク為替ディーラーが作ったFXリスク管理ツール。">
+  <meta name="twitter:image" content="https://say23i7c-netizen.github.io/hiiragi-fx-tools/ogp.png">
+
+  <meta name="description" content="口座残高・リスク許容率・損切り幅からロット数を自動計算。元メガバンク為替ディーラーが作ったFXリスク管理ツール。">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-H0TK7J2DWD"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-H0TK7J2DWD');
+  </script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -198,6 +226,40 @@
     .btn-refresh:hover { background: #eef1fd; }
     .btn-refresh:disabled { color: #9ca3af; cursor: default; }
 
+    /* CTA */
+    .cta-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5e 100%);
+      border-radius: 14px;
+      padding: 22px 20px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .cta-card p {
+      font-size: 13px;
+      color: #c4c9d6;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .cta-card strong { color: #fff; }
+    .cta-link {
+      display: inline-block;
+      padding: 12px 28px;
+      background: #4361ee;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .cta-link:hover { opacity: 0.85; }
+    .cta-sub {
+      font-size: 11px;
+      color: #7a7f9a;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
     /* フッター */
     .disclaimer {
       font-size: 11px;
@@ -317,6 +379,14 @@
     <div class="alert alert-danger" id="alert-high">
       ⚠️ リスクが高めです。1トレードのリスクは口座残高の2%以内が一般的な目安です。
     </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-card" id="cta-section" style="display:none;">
+    <p><strong>ロット計算ができたら、次は実践。</strong><br>
+    柊が実際に使っている海外FX口座はこちら。</p>
+    <a class="cta-link" id="cta-hfm" href="https://www.hfm.com/sv/jp/?refid=30418329" target="_blank" rel="noopener" onclick="gtag('event','hfm_click',{event_category:'cta',event_label:'lot_calculator'})">HFMで口座を開設する</a>
+    <div class="cta-sub">※ 最短3分で開設完了。入金ボーナスあり</div>
   </div>
 
   <div class="disclaimer">
@@ -496,6 +566,7 @@
 
     const rc = document.getElementById('result-card');
     rc.classList.add('show');
+    document.getElementById('cta-section').style.display = 'block';
     rc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
